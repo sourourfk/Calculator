@@ -1,10 +1,12 @@
-def CONTAINER_NAME = "calculator"
+/*def CONTAINER_NAME = "calculator" lorsque on lance le pipeline pour un deploiement en prod  (on suprime pas les autres deploiemnt  )*/
 def ENV_NAME = getEnvName(env.BRANCH_NAME)
+def CONTAINER_NAME = "calculator-"+ENV_NAME
 def CONTAINER_TAG = getTag(env.BUILD_NUMBER, env.BRANCH_NAME)
 def HTTP_PORT = getHTTPPort(env.BRANCH_NAME)
-def EMAIL_RECIPIENTS = "philippe.guemkamsimo@gmail.com"
+def EMAIL_RECIPIENTS = "sourourdhifeoui94@gmail.com"
 
-
+/*stage c'est une etape de pipeline
+ 1er etape initialiser les outils dont nous aurons besoins*/
 node {
     try {
         stage('Initialize') {
@@ -15,14 +17,16 @@ node {
 
         stage('Checkout') {
             checkout scm
+            /*commande jks permettant d'aller recupperer toutes les branches qui ont été pousser  sur git */
         }
-
+/* execution de test : etape de test */
         stage('Build with test') {
 
             sh "mvn clean install"
         }
-
+/* vérifier la version */
         stage('Sonarqube Analysis') {
+        /* lancer l'analyse */
             withSonarQubeEnv('SonarQubeLocalServer') {
                 sh " mvn sonar:sonar -Dintegration-tests.skip=true -Dmaven.test.failure.ignore=true"
             }
@@ -33,7 +37,7 @@ node {
                 }
             }
         }
-
+/* economise de la mémoire; on suprime tout container inutile */
         stage("Image Prune") {
             imagePrune(CONTAINER_NAME)
         }
@@ -41,15 +45,15 @@ node {
         stage('Image Build') {
             imageBuild(CONTAINER_NAME, CONTAINER_TAG)
         }
-
+/*pousser dans notre registry qui est dockerhub*/
         stage('Push to Docker Registry') {
-            withCredentials([usernamePassword(credentialsId: 'DockerhubCredentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+            withCredentials([usernamePassword(credentialsId: 'dockercredentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                 pushToImage(CONTAINER_NAME, CONTAINER_TAG, USERNAME, PASSWORD)
             }
         }
 
         stage('Run App') {
-            withCredentials([usernamePassword(credentialsId: 'DockerhubCredentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+            withCredentials([usernamePassword(credentialsId: 'dockercredentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                 runApp(CONTAINER_NAME, CONTAINER_TAG, USERNAME, HTTP_PORT, ENV_NAME)
 
             }
