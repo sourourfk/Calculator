@@ -75,7 +75,7 @@ def imagePrune(containerName) {
 }
 
 def imageBuild(containerName, tag) {
-    sh "docker build -t $containerName:$tag  -t $containerName --pull --no-cache ."
+    sh "docker build -t $containerName:$tag   --pull --no-cache ."
     echo "Image build complete"
 }
 
@@ -108,9 +108,9 @@ String getEnvName(String branchName) {
 
 String getHTTPPort(String branchName) {
     if (branchName == 'main') {
-        return '9003'
+        return '8092'
     }
-    return (branchName == 'develop') ? '9002' : '9001'
+    return (branchName == 'develop') ? '8091' : '8090'
 }
 
 String getTag(String buildNumber, String branchName) {
