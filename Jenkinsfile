@@ -42,7 +42,7 @@ node {
             imagePrune(CONTAINER_NAME)
         }
 
-        stage('Image Build') {
+        stage('Image Build') { /*c'est bon*/
             imageBuild(CONTAINER_NAME, CONTAINER_TAG)
         }
 /*pousser dans notre registry qui est dockerhub*/
@@ -52,7 +52,7 @@ node {
             }
         }
 
-        stage('Run App') {
+        stage('Run App') {/*c'est bon*/
             withCredentials([usernamePassword(credentialsId: 'dockercredentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                 runApp(CONTAINER_NAME, CONTAINER_TAG, USERNAME, HTTP_PORT, ENV_NAME)
 
